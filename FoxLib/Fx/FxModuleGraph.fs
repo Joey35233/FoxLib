@@ -120,14 +120,14 @@ type public FxIntervalProbabilityEmitNode = {
     DelayFrame : uint32
     DelayFrameRandomRange : uint32
     EmitVersion : int32
-    FadeOutPosition : float
+    FadeOutPosition : float32
     FadeOutReverse : bool
     IntervalFrame : uint32
     LifeFrame : uint32
     LifeRandomRangeFrame : uint32
     NumMin : uint32
     NumMax : uint32
-    Probability : float
+    Probability : float32
     RandomGatherSeedValue : uint32
     RandomGatherType : FxRandomGatherType
     ReceiveName : string
@@ -157,7 +157,7 @@ let private readFxConstLifeNode readUInt32 =
     { LifeFrame = readUInt32 }
 
 type public FxRandomVectorNode = {
-    Force : float
+    Force : float32
     Global : bool
     GlobalEvaluateRealTimeRootRotate : bool
     RandomGatherSeedValue : uint32
@@ -180,7 +180,7 @@ let private readFxRandomVectorNode readFloat readBool readUInt32 readInt32 readV
     XySquere = readBool }
 
 type public FxConstVectorNode = {
-    Force : float
+    Force : float32
     Global : bool
     Vector : Vector4
     VectorType : FxVectorType
@@ -204,9 +204,9 @@ type public FxUniformVelocityVectorNode = struct end with interface IFxNode
 type public FxUniformVelocityTimeVectorNode = struct end with interface IFxNode
 
 type public FxDragTimeVectorNode = {
-    Drag : float
+    Drag : float32
     Method : int32
-    Scale : float 
+    Scale : float32
 } with interface IFxNode
 
 let private readFxDragTimeVectorNode readFloat readInt32 = 
@@ -215,7 +215,7 @@ let private readFxDragTimeVectorNode readFloat readInt32 =
     Scale = readFloat }
 
 type public FxCompositionVectorNode = {
-    MaskValue : float
+    MaskValue : float32
     SecondMaskW : bool
     SecondMaskX : bool
     SecondMaskY : bool
@@ -237,7 +237,7 @@ let private readFxOscillateVector2Node readBool =
     { Periodicity = readBool }
 
 type public FxMultiplyVectorNode = {
-    MaskValue : float
+    MaskValue : float32
     SecondMaskW : bool
     SecondMaskX : bool
     SecondMaskY : bool
@@ -258,8 +258,8 @@ type public FxPlaneRotShapeNode = {
     BaseRot : Quaternion
     BaseSizeScale : Quaternion
     BoundingBoxType : FxBoundingBoxType
-    CenterU : float
-    CenterV : float
+    CenterU : float32
+    CenterV : float32
     CullFace : bool
     Enable : bool
     LocalSpace : bool
@@ -269,7 +269,7 @@ type public FxPlaneRotShapeNode = {
     RotGlobal : bool
     RotateOrderType : FxRotateOrderTyoe
     SortMode : FxRenderSortMode
-    SortOffset : float 
+    SortOffset : float32
 } with interface IFxNode
 
 let private readFxPlaneRotShapeNode readVector4 readInt32 readString readQuaternion readFloat readBool readUInt32 readVector3 =
@@ -293,19 +293,19 @@ let private readFxPlaneRotShapeNode readVector4 readInt32 readString readQuatern
     SortOffset = readFloat }
 
 type public FxLightInfluenceMaterialNode = {
-    AmbientRate : float
-    CameraFadeInFar : float
-    CameraFadeInNear : float
-    CameraZOffset : float
-    DirectionalLightRate : float
+    AmbientRate : float32
+    CameraFadeInFar : float32
+    CameraFadeInNear : float32
+    CameraZOffset : float32
+    DirectionalLightRate : float32
     Opaque : bool
-    PointLightRate : float
+    PointLightRate : float32
     ReceiveShadowMap : bool
     ShaderType : int32
     SoftBlend : bool
-    SoftBlendFactor : float
+    SoftBlendFactor : float32
     TextureAnimeBlend : bool
-    TextureAnimeBlendFrame : float
+    TextureAnimeBlendFrame : float32
     TextureAnimeBlendHeight : uint32
     TextureAnimeBlendWidth : uint32
     TextureAnimeClamp : bool
@@ -334,12 +334,12 @@ let private readFxLightInfluenceMaterialNode readFloat readBool readInt32 readUI
     TextureFile = readString }
 
 type public FxTimeScaleVectorNode = {
-    EndScale : float
+    EndScale : float32
     MaskW : bool
     MaskX : bool
     MaskY : bool
     MaskZ : bool
-    StartScale : float 
+    StartScale : float32 
 } with interface IFxNode
 
 let private readFxTimeScaleVectorNode readFloat readBool =
@@ -374,14 +374,14 @@ type public FxDynamicLuminanceMaterialNode = {
     UnknownUInt3 : uint32
     UnknownBool0 : bool
     UnknownString0 : string
-    UnknownFloat0 : float
-    UnknownFloat1 : float
-    UnknownFloat2 : float
-    UnknownFloat3 : float
+    UnknownFloat0 : float32
+    UnknownFloat1 : float32
+    UnknownFloat2 : float32
+    UnknownFloat3 : float32
     UnknownBool1 : bool
     UnknownUInt4 : uint32
-    UnknownFloat4 : float
-    UnknownFloat5 : float
+    UnknownFloat4 : float32
+    UnknownFloat5 : float32
     UnknownUInt5 : uint32
     UnknownUInt6 : uint32
     UnknownBool2 : bool
@@ -488,14 +488,14 @@ type public FxKeyframeVectorNode = {
     UnknownUInt4 : uint32
     UnknownUInt5 : uint32
     UnknownUInt6 : uint32
-    UnknownFloat0 : float[]
-    UnknownFloat1 : float[]
+    UnknownFloat0 : float32[]
+    UnknownFloat1 : float32[]
     UnknownUInt7 : uint32
-    UnknownFloat2 : float
+    UnknownFloat2 : float32
     UnknownUInt8 : uint32
-    UnknownFloat3 : float
+    UnknownFloat3 : float32
     UnknownUInt9 : uint32
-    UnknownFloat4 : float
+    UnknownFloat4 : float32
 } with interface IFxNode
 
 let private readFxKeyframeVectorNode readUInt32 readFloatArray readFloat = 
@@ -516,11 +516,11 @@ let private readFxKeyframeVectorNode readUInt32 readFloatArray readFloat =
     UnknownFloat4 = readFloat }
 
 type public FxLodVectorNode = {
-    UnknownFloat0 : float
-    UnknownFloat1 : float
-    UnknownFloat2 : float
-    UnknownFloat3 : float
-    UnknownFloat4 : float
+    UnknownFloat0 : float32
+    UnknownFloat1 : float32
+    UnknownFloat2 : float32
+    UnknownFloat3 : float32
+    UnknownFloat4 : float32
 } with interface IFxNode
 
 let private readFxLodVectorNode readFloat = 
@@ -533,7 +533,7 @@ let private readFxLodVectorNode readFloat =
 type public FxUniformAccelVectorNode = struct end
 
 type public WindFxVectorNode = {
-    UnknownFloat0 : float
+    UnknownFloat0 : float32
     UnknownBool0 : bool
     UnknownUInt0 : uint32 
 } with interface IFxNode
@@ -544,7 +544,7 @@ let private readWindFxVectorNode readFloat readBool readUInt32 =
     UnknownUInt0 = readUInt32 }
 
 type public FxUVAnimeIntervalVectorNode = {
-    UnknownFloat0 : float
+    UnknownFloat0 : float32
     UnknownBool0 : bool
     UnknownUInt0 : uint32
     UnknownUInt1 : uint32
@@ -571,15 +571,15 @@ let private readFxUVAnimeIntervalVectorNode readFloat readBool readUInt32 =
     UnknownBool5 = readBool }
 
 type public FxCameraCorrectionVectorNode = {
-    UnknownFloat0 : float
+    UnknownFloat0 : float32
     UnknownUInt0 : uint32
-    UnknownFloat1 : float
+    UnknownFloat1 : float32
     UnknownBool0 : bool
     UnknownUInt1 : uint32
-    UnknownFloat2 : float
-    UnknownFloat3 : float
-    UnknownFloat4 : float
-    UnknownFloat5 : float
+    UnknownFloat2 : float32
+    UnknownFloat3 : float32
+    UnknownFloat4 : float32
+    UnknownFloat5 : float32
 } with interface IFxNode
 
 let private readFxCameraCorrectionVectorNode readFloat readUInt32 readBool =
@@ -606,7 +606,7 @@ type public TppLensFlareShapeNode = {
     UnknownUInt2 : uint32
     UnknownString1 : string
     UnknownBool2 : bool
-    UnknownFloat0 : float
+    UnknownFloat0 : float32
 } with interface IFxNode
 
 let private readTppLensFlareShapeNode readVector4 readUInt32 readBool readDouble readString readFloat =
@@ -627,7 +627,7 @@ let private readTppLensFlareShapeNode readVector4 readUInt32 readBool readDouble
 type public FxReceiveVectorNode = {
     UnknownBool0 : bool
     UnknownVector0 : Vector4
-    UnknownFloat0 : float
+    UnknownFloat0 : float32
     UnknownBool1 : bool
     UnknownBool2 : bool
     UnknownBool3 : bool
@@ -650,14 +650,14 @@ let private readFxReceiveVectorNode readBool readVector4 readFloat readString=
     UnknownString0 = readString }
 
 type public FxTrailShapeNode = {
-    UnknownFloat0 : float
+    UnknownFloat0 : float32
     UnknownBool0 : bool
     UnknownUInt0 : uint32
-    UnknownFloat1 : float
-    UnknownFloat2 : float
+    UnknownFloat1 : float32
+    UnknownFloat2 : float32
     UnknownUInt1 : uint32
     UnknownVector0 : Vector4
-    UnknownFloat3 : float
+    UnknownFloat3 : float32
     UnknownUInt2 : uint32
     UnknownBool1 : bool
     UnknownUInt3 : uint32
@@ -674,11 +674,35 @@ type public FxTrailShapeNode = {
     UnknownUInt9 : uint32
 } with interface IFxNode
 
+let private FxTrailShapeNode readFloat readBool readUInt32 readVector4 = 
+    { UnknownFloat0 = readFloat;
+    UnknownBool0 = readBool;
+    UnknownUInt0 = readUInt32;
+    UnknownFloat1 = readFloat;
+    UnknownFloat2 = readFloat;
+    UnknownUInt1 = readUInt32;
+    UnknownVector0 = readVector4;
+    UnknownFloat3 = readFloat;
+    UnknownUInt2 = readUInt32;
+    UnknownBool1 = readBool;
+    UnknownUInt3 = readUInt32;
+    UnknownUInt4 = readUInt32;
+    UnknownBool2 = readBool;
+    UnknownVector1 = readVector4;
+    UnknownVector2 = readVector4;
+    UnknownUInt5 = readUInt32;
+    UnknownUInt6 = readUInt32;
+    UnknownBool3 = readBool;
+    UnknownUInt7 = readUInt32;
+    UnknownBool4 = readBool;
+    UnknownUInt8 = readUInt32;
+    UnknownUInt9 = readUInt32 }
+
 type public FxSpriteShapeNode = {
     UnknownVector0 : Vector4
     UnknownUInt0 : uint32
-    UnknownFloat0 : float
-    UnknownFloat1 : float
+    UnknownFloat0 : float32
+    UnknownFloat1 : float32
     UnknownBool0 : bool
     UnknownBool1 : bool
     UnknownBool2 : bool
@@ -688,3 +712,17 @@ type public FxSpriteShapeNode = {
     UnknownUInt2 : uint32
     UnknownUInt3 : uint32
 } with interface IFxNode
+
+let private readFxSpriteShapeNode readVector4 readUInt32 readFloat readBool = 
+    { UnknownVector0 = readVector4;
+    UnknownUInt0 = readUInt32;
+    UnknownFloat0 = readFloat;
+    UnknownFloat1 = readFloat;
+    UnknownBool0 = readBool;
+    UnknownBool1 = readBool;
+    UnknownBool2 = readBool;
+    UnknownVector1 = readVector4;
+    UnknownVector2 = readVector4;
+    UnknownUInt1 = readUInt32;
+    UnknownUInt2 = readUInt32;
+    UnknownUInt3 = readUInt32 }
