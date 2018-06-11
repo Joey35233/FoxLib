@@ -62,12 +62,9 @@
     <Compile Include="TppRouteSet.fs" />
     <Compile Include="TppRailUniqueIdFile.fs" />
     <Compile Include="MaterialParamBinary.fs" />
-<<<<<<< HEAD
     <Compile Include="PrecomputedSkyParameters.fs" />
-=======
     <Compile Include="DataSetFile2.fs" />
     <Compile Include="CoverPointFile.fs" />
->>>>>>> 074b12fa7b19f97d3d9c0410d5827616a03302cf
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,6 @@
 ﻿module FoxLib.Core
 
+open System
 open System.Collections
 open System.Collections.Generic
     
