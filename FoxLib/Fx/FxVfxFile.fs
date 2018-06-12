@@ -2,7 +2,7 @@
 
 open System
 open FoxLib.Core
-open FoxLib.Fx.Vfx.FxNodes
+open FoxLib.Fx.VfxNodes
 
 /// <summmary>
 /// Input functions to the Read function.
@@ -25,7 +25,7 @@ type public ReadFunctions = {
     /// Function to read a bool.
     ReadBool : Func<bool>
     /// Function to read a string.
-    ReadString : Func<string>
+    ReadString : Func<uint32, string>
     /// Function to skip a number of bytes.
     SkipBytes : Action<int>
 }
@@ -51,7 +51,7 @@ type private ConvertedReadFunctions = {
     /// Function to read a bool.
     ReadBool : unit -> bool
     /// Function to read a string.
-    ReadString : unit -> string
+    ReadString : uint32 -> string
     /// Function to skip a number of bytes.
     SkipBytes : int -> unit
 }
@@ -203,14 +203,15 @@ let private convertConvertedReadFunctions (convertedReadFunctions : ConvertedRea
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadDouble())
 
-    let readString =
-        convertedReadFunctions.SkipBytes 3
-        convertedReadFunctions.ReadString
+    let readString () =
+        convertedReadFunctions.SkipBytes 1
+        let charCount = convertedReadFunctions.ReadUInt16()
+        convertedReadFunctions.ReadString (uint32 <| charCount)
 
     let readStrings () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
-         |> Array.map (fun _ -> convertedReadFunctions.SkipBytes 2
-                                convertedReadFunctions.ReadString() )
+         |> Array.map (fun _ -> let charCount = convertedReadFunctions.ReadUInt16()
+                                convertedReadFunctions.ReadString (uint32 <| charCount))
 
     let readVector3 () =
         convertedReadFunctions.SkipBytes 1
@@ -595,9 +596,7 @@ let private readFxSpriteShapeNode readVector4 readUInt32 readFloat readBool =
     UnknownUInt3 = readUInt32() }
 
 let private readNode (readUInt64 : unit -> uint64) (convertedFxReadFunctions : FxReadFunctions) : IFxNode = 
-    let hash = readUInt64()
-    
-    match hash with
+    match readUInt64() with
     | 0x2ccdc3ed2f6eUL -> (readFxIntervalProbabilityEmitNode convertedFxReadFunctions.ReadUInt32 convertedFxReadFunctions.ReadInt32 convertedFxReadFunctions.ReadSingle convertedFxReadFunctions.ReadBool convertedFxReadFunctions.ReadString) :> IFxNode
     | 0x37388fadd256UL -> (readFxConstLifeNode convertedFxReadFunctions.ReadUInt32) :> IFxNode
     | 0xc3c76ab27693UL -> (readFxRandomVectorNode convertedFxReadFunctions.ReadSingle convertedFxReadFunctions.ReadBool convertedFxReadFunctions.ReadUInt32 convertedFxReadFunctions.ReadInt32 convertedFxReadFunctions.ReadVector4) :> IFxNode

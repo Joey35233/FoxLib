@@ -1,4 +1,4 @@
-﻿module FoxLib.Fx.Vfx.FxNodes
+﻿module FoxLib.Fx.VfxNodes
 
 open FoxLib.Core
 
