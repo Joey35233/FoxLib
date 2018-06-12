@@ -88,17 +88,17 @@ type public FxVariationGenerationFilterType =
     | Generation8 = 2
 
 type public FxModuleGraph = {
-    EffectName : StrCodeHash
-    DebugInfo : bool
     AllFrame : uint32
-    PlayMode : FxPlayModeType
-    FadeInEndFrame : uint32
-    FadeOutStartFrame : uint32
-    UpdateType : FxUpdateType
-    BoundingBoxType : FxBoundingBoxType
     BoundingBoxOffsetPos : Vector3
     BoundingBoxSize : Vector3
+    BoundingBoxType : FxBoundingBoxType
+    DebugInfo : bool
+    EffectName : uint64
     ExecutionPriorityType : FxExecutionPriorityType
+    FadeInEndFrame : uint32
+    FadeOutStartFrame : uint32
+    PlayMode : FxPlayModeType
+    UpdateType : FxUpdateType
 }
 
 type public IFxNode = interface end
@@ -182,7 +182,7 @@ type public FxPlaneRotShapeNode = {
     AxisFix : int32
     AxisFixParticleDirectionPoolName : string
     BaseRot : Quaternion
-    BaseSizeScale : Quaternion
+    BaseSizeScale : float32
     BoundingBoxType : FxBoundingBoxType
     CenterU : float32
     CenterV : float32
@@ -307,12 +307,12 @@ type public FxKeyframeVectorNode = {
     UnknownUInt6 : uint32
     UnknownFloat0 : float32[]
     UnknownFloat1 : float32[]
-    UnknownUInt7 : uint32
-    UnknownFloat2 : float32
-    UnknownUInt8 : uint32
-    UnknownFloat3 : float32
-    UnknownUInt9 : uint32
-    UnknownFloat4 : float32
+    UnknownFloat2 : float32[]
+    UnknownFloat3 : float32[]
+    UnknownFloat4 : float32[]
+    UnknownFloat5 : float32[]
+    UnknownFloat6 : float32[]
+    UnknownFloat7 : float32[]
 } with interface IFxNode
 
 type public FxLodVectorNode = {

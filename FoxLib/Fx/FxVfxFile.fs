@@ -139,65 +139,65 @@ type private FxReadFunctions = {
 }
 
 let private convertConvertedReadFunctions (convertedReadFunctions : ConvertedReadFunctions) =
-    let readBool = 
+    let readBool () = 
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadBool
+        convertedReadFunctions.ReadBool()
 
     let readBools () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadBool())
 
-    let readUInt8 = 
+    let readUInt8 () = 
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadUInt8
+        convertedReadFunctions.ReadUInt8()
 
     let readUInt8s () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadUInt8())
 
-    let readUInt16 =
+    let readUInt16 () =
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadUInt16
+        convertedReadFunctions.ReadUInt16()
 
     let readUInt16s () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadUInt16())
 
-    let readInt32 =
+    let readInt32 () =
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadInt32
+        convertedReadFunctions.ReadInt32()
 
     let readInt32s () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadInt32())
 
-    let readUInt32 =
+    let readUInt32 () =
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadUInt32
+        convertedReadFunctions.ReadUInt32()
 
     let readUInt32s () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadUInt32())
 
-    let readUInt64 =
+    let readUInt64 () =
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadUInt64
+        convertedReadFunctions.ReadUInt64()
 
     let readUInt64s () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadUInt64())
 
-    let readFloat =
+    let readFloat () =
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadSingle
+        convertedReadFunctions.ReadSingle()
 
     let readFloats () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
          |> Array.map (fun _ -> convertedReadFunctions.ReadSingle())
 
-    let readDouble =
+    let readDouble () =
         convertedReadFunctions.SkipBytes 1
-        convertedReadFunctions.ReadDouble
+        convertedReadFunctions.ReadDouble()
 
     let readDoubles () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
@@ -215,7 +215,9 @@ let private convertConvertedReadFunctions (convertedReadFunctions : ConvertedRea
 
     let readVector3 () =
         convertedReadFunctions.SkipBytes 1
-        FoxLib.Vector3.Read convertedReadFunctions.ReadSingle
+        let vector = FoxLib.Vector3.Read convertedReadFunctions.ReadSingle
+        convertedReadFunctions.SkipBytes 4
+        vector
 
     let readVector3s () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
@@ -226,6 +228,7 @@ let private convertConvertedReadFunctions (convertedReadFunctions : ConvertedRea
     let readVector4 () =
         convertedReadFunctions.SkipBytes 1
         FoxLib.Vector4.Read convertedReadFunctions.ReadSingle
+
 
     let readVector4s () =
         [|1..int <| convertedReadFunctions.ReadUInt8()|]
@@ -274,26 +277,28 @@ let private readHeader skipBytes readCount =
 
     let nodeCount = readCount()
 
-    let edgeCount = readCount()
-
-    let header = { NodeCount = nodeCount; EdgeCount = edgeCount }
+    let edgeCount = readCount()   
 
     skipBytes 6
 
-    header
+    { NodeCount = nodeCount; EdgeCount = edgeCount }
 
-let private readGraph readUInt64 readBool readUInt32 readInt32 readVector3 =
-    { EffectName = readUInt64();
-    DebugInfo = readBool();
-    AllFrame = readUInt32();
-    PlayMode = enum <| readInt32();
-    FadeInEndFrame = readUInt32();
-    FadeOutStartFrame = readUInt32();
-    UpdateType = enum <| readInt32();
-    BoundingBoxType = enum <| readInt32();
+let private readGraph readUInt64 readBool readUInt32 readInt32 readVector3 readHash =
+    let thing = readHash(); //assert (readUInt64() = 0x61d75b06ca22UL)
+    
+    printf "Is %i is equal to \"0x61d75b06ca22UL\"? %b" thing (thing = 0x61d75b06ca22UL)
+
+    { AllFrame = readUInt32();
     BoundingBoxOffsetPos = readVector3();
     BoundingBoxSize = readVector3();
-    ExecutionPriorityType = enum <| readInt32() }
+    BoundingBoxType = enum <| readInt32();
+    DebugInfo = readBool();
+    EffectName = readUInt64();
+    ExecutionPriorityType = enum <| readInt32();
+    FadeInEndFrame = readUInt32();
+    FadeOutStartFrame = readUInt32();
+    PlayMode = enum <| readInt32();
+    UpdateType = enum <| readInt32() }
 
 let private readFxIntervalProbabilityEmitNode readUInt32 readInt32 readFloat readBool readString =
     { DelayFrame = readUInt32();
@@ -367,7 +372,7 @@ let private readFxPlaneRotShapeNode readVector4 readInt32 readString readQuatern
     AxisFix = readInt32();
     AxisFixParticleDirectionPoolName = readString();
     BaseRot = readQuaternion();
-    BaseSizeScale = readQuaternion();
+    BaseSizeScale = readFloat();
     BoundingBoxType = enum <| readInt32();
     CenterU = readFloat();
     CenterV = readFloat();
@@ -474,7 +479,7 @@ let private readFxRandomLifeNode readUInt32 =
 let private readFxFirstLoopOnlyEmitNode () = 
     new FxFirstLoopOnlyEmitNode()
 
-let private readFxKeyframeVectorNode readUInt32 readFloatArray readFloat = 
+let private readFxKeyframeVectorNode readUInt32 readFloatArray = 
     { UnknownUInt0 = readUInt32();
     UnknownUInt1 = readUInt32();
     UnknownUInt2 = readUInt32();
@@ -484,12 +489,12 @@ let private readFxKeyframeVectorNode readUInt32 readFloatArray readFloat =
     UnknownUInt6 = readUInt32();
     UnknownFloat0 = readFloatArray();
     UnknownFloat1 = readFloatArray();
-    UnknownUInt7 = readUInt32();
-    UnknownFloat2 = readFloat();
-    UnknownUInt8 = readUInt32();
-    UnknownFloat3 = readFloat();
-    UnknownUInt9 = readUInt32();
-    UnknownFloat4 = readFloat() }
+    UnknownFloat2 = readFloatArray();
+    UnknownFloat3 = readFloatArray();
+    UnknownFloat4 = readFloatArray();
+    UnknownFloat5 = readFloatArray();
+    UnknownFloat6 = readFloatArray();
+    UnknownFloat7 = readFloatArray() }
 
 let private readFxLodVectorNode readFloat = 
     { UnknownFloat0 = readFloat();
@@ -618,7 +623,7 @@ let private readNode (readUInt64 : unit -> uint64) (convertedFxReadFunctions : F
     | 0xd47883800b1fUL -> (readFxInfinityLifeNode convertedFxReadFunctions.ReadUInt32) :> IFxNode
     | 0x328abc5662e9UL -> (readFxRandomLifeNode convertedFxReadFunctions.ReadUInt32) :> IFxNode
     | 0x42d7f0c46bdeUL -> (readFxFirstLoopOnlyEmitNode ()) :> IFxNode
-    | 0x4499d0fddfe8UL -> (readFxKeyframeVectorNode convertedFxReadFunctions.ReadUInt32 convertedFxReadFunctions.ReadSingles convertedFxReadFunctions.ReadSingle) :> IFxNode
+    | 0x4499d0fddfe8UL -> (readFxKeyframeVectorNode convertedFxReadFunctions.ReadUInt32 convertedFxReadFunctions.ReadSingles) :> IFxNode
     | 0x3770626249deUL -> (readFxLodVectorNode convertedFxReadFunctions.ReadSingle) :> IFxNode
     | 0x9d13f7cb5a60UL -> (readFxUniformAccelVectorNode ()) :> IFxNode
     | 0xa37723c4be1dUL -> (readWindFxVectorNode convertedFxReadFunctions.ReadSingle convertedFxReadFunctions.ReadBool convertedFxReadFunctions.ReadUInt32) :> IFxNode
@@ -679,7 +684,9 @@ let public Read readFunctions =
     
     let header = readHeader convertedReadFunctions.SkipBytes convertedReadFunctions.ReadUInt16
 
-    let moduleGraph = readGraph convertedReadFunctions.ReadUInt64 convertedReadFunctions.ReadBool convertedReadFunctions.ReadUInt32 convertedReadFunctions.ReadInt32 (fun _ -> FoxLib.Vector3.Read convertedReadFunctions.ReadSingle)
+    //convertedReadFunctions.SkipBytes 6
+
+    let moduleGraph = readGraph convertedConvertedReadFunctions.ReadUInt64 convertedConvertedReadFunctions.ReadBool convertedConvertedReadFunctions.ReadUInt32 convertedConvertedReadFunctions.ReadInt32 convertedConvertedReadFunctions.ReadVector3 convertedReadFunctions.ReadUInt64
 
     let nodes = [|1..((int <| header.NodeCount) - 1)|]
                  |> Array.map (fun _ -> readNode convertedReadFunctions.ReadUInt64 convertedConvertedReadFunctions)
