@@ -638,24 +638,31 @@ let private readNode (readUInt64 : unit -> uint64) (convertedFxReadFunctions : F
 type public Edge = {
     SourceNodeIndex : byte
     SourcePortIndex : byte
+    SourcePortType : UiNodePropType
     
     TargetNodeIndex : byte
     TargetPortIndex : byte
+    TargetPortType : UiNodePropType
 }
 
-let private readEdge readByte =
+let private readEdge (readByte : unit -> byte) =
     let sourceNodeIndex = readByte()
     let targetNodeIndex = readByte()
 
-    let sourcePortType = readByte()
+    let sourcePortType = enum << int <| readByte()
     let sourcePortIndex = readByte()
 
-    let targetPortType = readByte()
+    let targetPortType = enum << int <| readByte()
     let targetPortIndex = readByte()
 
     if (sourcePortType <> targetPortType) then printf "Error: Types do not match."
 
-    { SourceNodeIndex = sourceNodeIndex; SourcePortIndex = sourcePortIndex; TargetNodeIndex = targetNodeIndex; TargetPortIndex = targetPortIndex }
+    { SourceNodeIndex = sourceNodeIndex;
+    SourcePortIndex = sourcePortIndex;
+    SourcePortType = sourcePortType;
+    TargetNodeIndex = targetNodeIndex;
+    TargetPortIndex = targetPortIndex;
+    TargetPortType = targetPortType }
 
 type public VFXGraph = {
     HasDebugInfo : bool
@@ -683,8 +690,6 @@ let public Read readFunctions =
     let convertedConvertedReadFunctions = convertConvertedReadFunctions convertedReadFunctions
     
     let header = readHeader convertedReadFunctions.SkipBytes convertedReadFunctions.ReadUInt16
-
-    //convertedReadFunctions.SkipBytes 6
 
     let moduleGraph = readGraph convertedConvertedReadFunctions.ReadUInt64 convertedConvertedReadFunctions.ReadBool convertedConvertedReadFunctions.ReadUInt32 convertedConvertedReadFunctions.ReadInt32 convertedConvertedReadFunctions.ReadVector3 convertedReadFunctions.ReadUInt64
 

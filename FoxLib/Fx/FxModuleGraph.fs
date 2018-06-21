@@ -2,6 +2,33 @@
 
 open FoxLib.Core
 
+
+type public UiNodePropType =
+    | INT8 = 0
+    | UINT8 = 1
+    | INT16 = 2
+    | UINT16 = 3
+    | INT32 = 4
+    | UINT32 = 5
+    | INT64 = 6
+    | UINT64 = 7
+    | FLOAT32 = 8
+    | FLOAT64 = 9
+    | BOOL = 10
+    | STRING = 11
+    | PATH = 12
+    | ENTITY_PTR = 13
+    | VECTOR3 = 14
+    | VECTOR4 = 15
+    | QUAT = 16
+    | MATRIX3 = 17
+    | MATRIX4 = 18
+    | COLOR = 19
+    | FILE_PTR = 20
+    | ENTITY_HANDLE = 21 
+    | ENTITY_LINK = 22
+    | INVALID = 23
+
 type public FxRandomGatherType =
     | Auto = 0
     | RelativeRootOffset = 1
