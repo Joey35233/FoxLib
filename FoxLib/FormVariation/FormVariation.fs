@@ -2,6 +2,7 @@
 
 open FoxLib.Core
 open System
+open FoxLib
 
 /// <summary>
 /// Metadata for an fv2 file.
@@ -86,6 +87,32 @@ type public CNPAttachment = {
 }
 
 /// <summary>
+/// Metadata for an fv2 file's variable data section.
+/// </summary>
+type private VariableDataHeader = {
+    TypeEnum : uint8
+    Unknown0 : uint8
+    NumEntries : uint8
+    NumMeshGroups : uint8
+    NumMaterialInstances : uint8
+    Unknown1 : uint8
+    NumBoneAttachedModels : byte
+    NumCNPAttachedModels : byte
+    // padding
+    Offset : uint32
+}
+
+/// <summary>
+/// A set of selectable form variations.
+/// </summary>
+type public VariableFormVariationEntry = {
+    Meshes : StrCode32Hash[]
+    MaterialInstances : TextureSwap[]
+    CNPAttachments : CNPAttachment[]
+    BoneAttachments : BoneAttachment[]
+}
+
+/// <summary>
 /// A set ot form variations.
 /// </summary>
 type public FormVariation = {
@@ -94,6 +121,7 @@ type public FormVariation = {
     TextureSwaps : TextureSwap[]
     CNPAttachments : CNPAttachment[]
     BoneAttachments : BoneAttachment[]
+    Variables : VariableFormVariationEntry[][]
 }
 
 /// <summary>
@@ -148,25 +176,13 @@ let private readHeader readEntriesCount readOffset readCount skipBytes =
     }
 
 /// <summary>
-/// Function to read a list of mesh groups to be hidden.
+/// Function to read a list of mesh groups to be shown/hidden.
 /// </summary>
 /// <param name="readHash"></param>
-/// <param name="numHiddenMeshGroups">The number of mesh groups to hide.</param>
-/// <returns>Returns a list of mesh groups to be shown.</returns>
-let private readHiddenMeshGroups readHash numHiddenMeshGroups=
-     match Some numHiddenMeshGroups with
-     | Some i -> [|1uy..i|]
-                  |> Array.map (fun _ -> readHash())
-     | None -> Array.empty<StrCode32Hash>
-
-/// <summary>
-/// Function to read a list of mesh groups to be shown.
-/// </summary>
-/// <param name="readHash">Function to read an StrCode32Hash</param>
-/// <param name="readIndex">The number of mesh groups to show.</param>
-/// <returns>Returns a list of mesh groups to be hidden.</returns>
-let private readShownMeshGroups readHash numShownMeshGroups =
-     match Some numShownMeshGroups with
+/// <param name="numMeshGroups">The number of mesh groups to show/hide.</param>
+/// <returns>Returns a list of mesh groups to be shown/hidden.</returns>
+let private readMeshGroups readHash numMeshGroups=
+     match Some numMeshGroups with
      | Some i -> [|1uy..i|]
                   |> Array.map (fun _ -> readHash())
      | None -> Array.empty<StrCode32Hash>
@@ -235,6 +251,69 @@ let private readCNPConnections readHash readIndex numCNPConnections =
                                         ExternalFileListIndexSim = readIndex();
                                         ExternalFileListIndexUnknown2 = readIndex(); })
     | None -> Array.empty<CNPConnection>
+
+
+
+/// <summary>
+/// A set of section 2 entries.
+/// </summary>
+type private Section2FormEntry = {
+    Meshes : StrCode32Hash[]
+    MaterialInstances : MaterialInstance
+    BoneConnections : BoneConnection[]
+    CNPConnections : CNPConnection[]
+}
+
+/// <summary>
+/// Read an fv2 section 2 header.
+/// </summary>
+/// <param name="readOffset">Function to read an offset.</param>
+/// <param name="readCount">Function to read a count.</param>
+/// <param name="skipBytes">Function to skip bytes.</param>
+/// <returns>Returns a parsed fv2 section 2 header.</returns>
+let private readVariableHeader readOffset readCount skipBytes =
+    let typeEnum = readCount()
+    let unknown0 = readCount()
+    let numEntries = readCount()
+    let numMeshGroups = readCount()
+    let numMaterialInstances = readCount()
+    let unknown1 = readCount()
+    let numBoneAttachedModels = readCount()
+    let numCNPAttachedModels = readCount()
+    
+    skipBytes 4
+
+    let offset = readOffset()
+
+    { TypeEnum = typeEnum;
+    Unknown0 = unknown0;
+    NumEntries = numEntries;
+    NumMeshGroups = numMeshGroups;
+    NumMaterialInstances = numMaterialInstances;
+    Unknown1 = unknown1;
+    NumBoneAttachedModels = numBoneAttachedModels;
+    NumCNPAttachedModels = numCNPAttachedModels;
+    Offset = offset;
+    }
+
+let private readVariableSection header readUInt16 readUInt32 skipBytes = 
+    let entries = [|1uy..header.NumEntries|]
+                  |> Array.map(fun _ -> 
+                                        let meshes = readMeshGroups readUInt32 header.NumMeshGroups
+
+                                        let materialInstances = readMaterialInstances readUInt32 readUInt16 skipBytes header.NumMaterialInstances
+
+                                        let boneAttachments = readBoneConnections readUInt16 header.NumBoneAttachedModels
+
+                                        let CNPAttachments = readCNPConnections readUInt32 readUInt16 header.NumBoneAttachedModels
+
+                                        { Meshes = meshes;
+                                        MaterialInstances = materialInstances;
+                                        BoneConnections = boneAttachments;
+                                        CNPConnections = CNPAttachments }  
+                               )
+
+    entries
 
 /// <summary>
 /// Function to read a list of external file hashes.
@@ -359,9 +438,9 @@ let public Read (readFunctions : ReadFunctions) =
 
     let header = readHeader convertedFunctions.ReadUInt16 convertedFunctions.ReadUInt16 convertedFunctions.ReadByte convertedFunctions.SkipBytes   
     
-    let hiddenMeshGroups = readHiddenMeshGroups convertedFunctions.ReadUInt32 header.NumHiddenMeshGroups
+    let hiddenMeshGroups = readMeshGroups convertedFunctions.ReadUInt32 header.NumHiddenMeshGroups
     
-    let shownMeshGroups = readShownMeshGroups convertedFunctions.ReadUInt32 header.NumShownMeshGroups
+    let shownMeshGroups = readMeshGroups convertedFunctions.ReadUInt32 header.NumShownMeshGroups
 
     let materialInstances = readMaterialInstances convertedFunctions.ReadUInt32 convertedFunctions.ReadUInt16 convertedFunctions.SkipBytes header.NumMaterialInstances
 
@@ -369,15 +448,33 @@ let public Read (readFunctions : ReadFunctions) =
 
     let CNPConnections = readCNPConnections convertedFunctions.ReadUInt32 convertedFunctions.ReadUInt16 header.NumCNPAttachedModels
 
+    convertedFunctions.AlignStream (header.Section2Offset |> int64)
+
+    let section2s = [|1us .. header.Section2Entries|]
+                    |> Array.map (fun _ -> readVariableHeader convertedFunctions.ReadUInt32 convertedFunctions.ReadByte convertedFunctions.SkipBytes)
+                    |> Array.map (fun header -> readVariableSection header convertedFunctions.ReadUInt16 convertedFunctions.ReadUInt32 convertedFunctions.SkipBytes)
+
     convertedFunctions.AlignStream (header.ExternalFileSectionOffset |> int64)
 
     let externalFileHashes = readExternalFileHashes convertedFunctions.ReadUInt64 header.ExternalFileSectionEntries
+
+    let variableSections = section2s
+                           |> Array.map (fun entry -> entry
+                                                      |> Array.map (fun subEntry -> 
+                                                                    { Meshes = subEntry.Meshes;
+                                                                    MaterialInstances = makeTextureSwap subEntry.MaterialInstances externalFileHashes;
+                                                                    BoneAttachments = makeBoneAttachment subEntry.BoneConnections externalFileHashes;
+                                                                    CNPAttachments = makeCNPAttachment subEntry.CNPConnections externalFileHashes
+                                                                    }
+                                                                    )
+                                         )
 
     { HiddenMeshGroups = hiddenMeshGroups;
     ShownMeshGroups = shownMeshGroups;
     TextureSwaps = makeTextureSwap materialInstances externalFileHashes;
     BoneAttachments = makeBoneAttachment boneConnections externalFileHashes;
-    CNPAttachments = makeCNPAttachment CNPConnections externalFileHashes }
+    CNPAttachments = makeCNPAttachment CNPConnections externalFileHashes;
+    Variables = variableSections }
 
 /// <summary>
 /// A null value that is written if any data section slot is unused.
